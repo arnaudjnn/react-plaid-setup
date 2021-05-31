@@ -4,21 +4,24 @@ import { Button } from "@chakra-ui/react";
 
 interface LinkProps {
   linkToken: string | null;
+  setAccessToken: Function;
 }
 
-export const PlaidLink = ({ linkToken }: LinkProps) => {
+export const PlaidLink = ({ linkToken, setAccessToken }: LinkProps) => {
 
-  const onSuccess = useCallback((public_token, metadata) => {
+  const onSuccess = useCallback(async (public_token, metadata) => {
     // send public_token to server
-    const accessTokenRes = fetch('/set_access_token', {
+    const accessTokenRes = await fetch('/exchange_public_token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ public_token }),
     });
-    // Handle response ...
-  }, []);
+    const accessTokenData = await accessTokenRes.json()
+    setAccessToken(accessTokenData.accessToken)
+
+  }, [setAccessToken]);
 
   const config: Parameters<typeof usePlaidLink>[0] = {
     token: linkToken!,

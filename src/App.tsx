@@ -5,18 +5,39 @@ import { PlaidLink } from "./PlaidLink";
 
 function App() {
   const [linkToken, setLinkToken] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const totalBalance = bankAccounts?.map(bankAccount => bankAccount.balances.current).reduce((prev, next) => prev + next, 0);
 
   const generateToken = async () => {
-    const response = await fetch('/create_link_token', {
+    const linkTokenRes = await fetch('/create_link_token', {
       method: 'POST',
     });
-    const data = await response.json();
-    setLinkToken(data.link_token);
+    const linkTokenData = await linkTokenRes.json();
+    setLinkToken(linkTokenData.link_token);
   };
+
+  const getBalance = async () => {
+    const balanceRes = await fetch('/balance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ accessToken }),
+    });
+    const balanceData = await balanceRes.json()
+    setBankAccounts(balanceData.accounts)
+  }
 
   useEffect(() => {
     generateToken();
   }, []);
+
+  useEffect(() => {
+    if(accessToken) {
+      getBalance();
+    }
+  }, [accessToken]);
 
   return (
     <Box textAlign="center" fontSize="xl">
@@ -34,7 +55,15 @@ function App() {
           >
             Learn Qovery
           </Link>
-          {linkToken && <PlaidLink linkToken={linkToken}/>}
+          {linkToken && 
+            <PlaidLink 
+              linkToken={linkToken} 
+              setAccessToken={setAccessToken}
+            />
+          }
+          {bankAccounts.length > 0 && 
+            <Text>{totalBalance}</Text>
+          }
         </VStack>
       </Grid>
     </Box>

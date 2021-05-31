@@ -37,6 +37,21 @@ app.post('/exchange_public_token', async (req, res) => {
     // Save the access_token and item_id to a persistent database
     const accessToken = tokenResponse.access_token;
     const itemId = tokenResponse.item_id;
+
+    res.json({ accessToken, itemId });
+  } catch (e) {
+    // Display error on client
+    return res.send({ error: e.message });
+  }
+});
+
+app.post('/balance', async (req, res) => {
+  try {
+    const accessToken = req.body.accessToken;
+    const balanceRes = await client.getBalance(accessToken);
+    const accounts = balanceRes.accounts;
+
+    res.json({ accounts });
   } catch (e) {
     // Display error on client
     return res.send({ error: e.message });
